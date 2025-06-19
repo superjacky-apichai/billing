@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>เว็บออกบิลหวยโง่ๆ (รวมยอด)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      background: #fff5f5;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+    input[type="text"], input[type="number"] {
+      padding: 6px;
+      width: 100px;
+    }
+    button {
+      padding: 8px 16px;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-add {
+      background-color: #ff4d4d;
+    }
+    .btn-summary {
+      background-color: #4CAF50;
+      margin-top: 20px;
+    }
+    .btn-clear {
+      background-color: #ff9800;
+    }
+    .btn-copy {
+      background-color: #007bff;
+      margin-left: 10px;
+    }
+    .bill-area {
+      white-space: pre-wrap;
+      background: #f2f2f2;
+      padding: 15px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📄 เว็บออกบิลหวยโง่ๆ (รวมยอดเงิน)</h2>
+
+  <div class="row">
+    <input type="text" id="lottoNumber" placeholder="เลข">
+    <button class="btn-clear" onclick="reverseNumber()">กลับเลข</button>
+    <input type="number" id="topAmount" placeholder="บน">
+    <input type="number" id="bottomAmount" placeholder="ล่าง">
+    <button class="btn-add" onclick="addBill()">➕ เพิ่มบิล</button>
+  </div>
+
+  <table id="billTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>เลข</th>
+        <th>บน</th>
+        <th>ล่าง</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button class="btn-summary" onclick="generateSummary()">📋 สรุปบิลทั้งหมด</button>
+  <button class="btn-copy" onclick="copySummary()" style="display:none;" id="copyBtn">📋 ก็อปบิล</button>
+
+  <div class="bill-area" id="resultArea" style="display:none;"></div>
+
+  <script>
+    const bills = [];
+    let summaryText = "";
+
+    function reverseNumber() {
+      const num = document.getElementById('lottoNumber').value.trim();
+      if (num.length >= 2) {
+        const reversed = num.split('').reverse().join('');
+        document.getElementById('lottoNumber').value = reversed;
+      }
+    }
+
+    function addBill() {
+      const number = document.getElementById('lottoNumber').value.trim();
+      const top = document.getElementById('topAmount').value.trim();
+      const bottom = document.getElementById('bottomAmount').value.trim();
+
+      if (!number || (!top && !bottom)) {
+        alert("กรุณาใส่เลข และจำนวนเงินอย่างน้อย 1 ช่อง (บนหรือล่าง)");
+        return;
+      }
+
+      bills.push({ number, top: parseFloat(top) || 0, bottom: parseFloat(bottom) || 0 });
+      updateTable();
+
+      document.getElementById('lottoNumber').value = '';
+      document.getElementById('topAmount').value = '';
+      document.getElementById('bottomAmount').value = '';
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector("#billTable tbody");
+      tbody.innerHTML = '';
+      bills.forEach(b => {
+        const row = `<tr>
+          <td>${b.number}</td>
+          <td>${b.top ? b.top + '฿' : '-'}</td>
+          <td>${b.bottom ? b.bottom + '฿' : '-'}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+      document.getElementById('billTable').style.display = 'table';
+    }
+
+    function generateSummary() {
+      if (bills.length === 0) {
+        alert("ยังไม่มีรายการบิล");
+        return;
+      }
+
+      let total = 0;
+      let text = "📄 บิลหวย\n\n";
+
+      bills.forEach(b => {
+        let line = `เลข ${b.number} `;
+        if (b.top) line += `บน ${b.top}฿ `;
+        if (b.bottom) line += `ล่าง ${b.bottom}฿`;
+        total += b.top + b.bottom;
+        text += line.trim() + '\n';
+      });
+
+      text += `\n💰 รวมยอดทั้งหมด: ${total.toLocaleString()} บาท`;
+
+      summaryText = text.trim();
+      document.getElementById('resultArea').innerText = summaryText;
+      document.getElementById('resultArea').style.display = 'block';
+      document.getElementById('copyBtn').style.display = 'inline-block';
+    }
+
+    function copySummary() {
+      navigator.clipboard.writeText(summaryText)
+        .then(() => alert("📋 ก็อปบิลเรียบร้อยแล้ว!"))
+        .catch(() => alert("❌ ก็อปบิลไม่สำเร็จ"));
+    }
+  </script>
+
+</body>
+</html>
